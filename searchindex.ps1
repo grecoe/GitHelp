@@ -1,57 +1,8 @@
-<#	
-	Copyright  Microsoft Corporation ("Microsoft").
-	
-	Microsoft grants you the right to use this software in accordance with your subscription agreement, if any, to use software 
-	provided for use with Microsoft Azure ("Subscription Agreement").  All software is licensed, not sold.  
-	
-	If you do not have a Subscription Agreement, or at your option if you so choose, Microsoft grants you a nonexclusive, perpetual, 
-	royalty-free right to use and modify this software solely for your internal business purposes in connection with Microsoft Azure 
-	and other Microsoft products, including but not limited to, Microsoft R Open, Microsoft R Server, and Microsoft SQL Server.  
-	
-	Unless otherwise stated in your Subscription Agreement, the following applies.  THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT 
-	WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL MICROSOFT OR ITS LICENSORS BE LIABLE 
-	FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED 
-	TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE SAMPLE CODE, EVEN IF ADVISED OF THE
-	POSSIBILITY OF SUCH DAMAGE.
-#>
-
-<#
-    Issues:
-        - Creating a datasource where it already exists returns a 400 not a 409 
-
-
-    Code Execution Locations
-        - Program Parameters :              Line 42
-        - Load Settings from Deployment :   Line 561
-        - Main program execution :          Line 669
-#>
-
-<# ----------------------------------------------------------------------
-    
-
-    Program parameters, it's expecte you have a logged on Azure user 
-    with access to the subscription that holds the resource group that
-    will either be identified with the -resource_group parameter or 
-    hard coded here. 
-
-
----------------------------------------------------------------------- #>
 param(
     [string]$resource_group = 'rijai-armtest',
     [string]$deployment_name = 'kmjulydeployment'
 )
 
-
-<# ----------------------------------------------------------------------
-
-
-    Get Azure Resource Group Deployment outputs
-
-
----------------------------------------------------------------------- #>
 
 class DeploymentOutputs {
     <#
@@ -69,23 +20,6 @@ class DeploymentOutputs {
     static $allOutputs = [DeploymentOutputs]::searchApiKey, [DeploymentOutputs]::cognitiveServicesKey, [DeploymentOutputs]::storageAccountKey, [DeploymentOutputs]::storageAccountName, [DeploymentOutputs]::storageContainerName, [DeploymentOutputs]::prefixName, [DeploymentOutputs]::searchServiceName, [DeploymentOutputs]::searchIndexName
 }
 
-<#
-    Function : Get-Deployment
-
-    Purpose: 
-        Given an Azure Resource Group and Resource Group Deployment name, this function will 
-        retrieve all of the deployment outputs as a dictionary.
-
-        All values from DeploymentOutputs.allOutputs must be present. If collecting the deployment
-        OR one of the values is missing, $null is returned for caller to terminate. 
-
-    Parameters:
-        resourceGroup - Resource Group name in which to get the deployment outputs
-        deployment - Deployment name in the resource group
-
-    Returns:
-        Returns a dictionary of all of the values. 
-#>
 Function Get-Deployment {
     param( 
         [System.String] $resourceGroup,
@@ -128,29 +62,6 @@ Function Get-Deployment {
     $return_data
 }
 
-
-<# ----------------------------------------------------------------------
-
-
-    Azure Storage Routines
-
-
----------------------------------------------------------------------- #>
-
-<#
-    Function : getStorageContext
-
-    Purpose: 
-        Retrieve an IStorageContext object to be used in other storage
-        calls.
-
-    Parameters:
-        storage_account - Azure Storage Account Name
-        storage_key - Associated key to Azure Storage Account Name
-
-    Returns:
-        IStorageContext for use in other *-Az storage calls.. 
-#>
 Function getStorageContext{
     param( 
         [System.String] $storage_account,
@@ -163,20 +74,6 @@ Function getStorageContext{
     return $res.Context
 }
 
-<#
-    Function : createStorageContainer
-
-    Purpose: 
-        Create a private storage container in a given storage account identified
-        by the context object. 
-
-    Parameters:
-        storage_context - IStorageContext
-        container_name - Name of container to create
-
-    Returns:
-        Storage container if succesful, $null otherwise.  
-#>
 Function createStorageContainer{
     param( 
         $storage_context,
@@ -203,25 +100,6 @@ Function createStorageContainer{
     return $container
 }
 
-
-<# ----------------------------------------------------------------------
-    Generic URI builder
----------------------------------------------------------------------- #>
-
-<#
-    Function : constructUrl
-
-    Purpose: 
-        Generic URL builder for creating many of the services in the search 
-        service that requires different inputs. 
-
-        Read the code as I took this directly from the Python implementation.
-
-    Parameters:
-
-    Returns:
-        String URL to use for request
-#>
 Function constructUrl {
     param( 
         [System.String] $service,
@@ -243,28 +121,6 @@ Function constructUrl {
         return $service + "/" + $resource + "?api-version=" + $api_version
     }
 }
-
-<# ----------------------------------------------------------------------
-
-
-    File utilities
-
-
----------------------------------------------------------------------- #>
-
-<#
-    Function : loadFile
-
-    Purpose: 
-        Load a JSON file and return a PSCustomObject with the content.
-
-    Parameters:
-        filePath - File to load
-
-    Returns:
-        Returns a PSCustomObject if file exists and was parsed, $null
-        otherwise.
-#>
 
 Function loadFile {
     param( 
@@ -290,21 +146,6 @@ Function loadFile {
     return $return_object
 }
 
-<#
-    Function : uploadSampleDataToBlob
-
-    Purpose: 
-        Uploads all files in a specified directory to a specified storage account
-        and storage container. 
-
-    Parameters:
-        filePath - local path to files to upload
-        storageContext - IStorageContext item to desired account
-        storageContainer - Name of an existing storage container
-
-    Returns:
-        None
-#>
 Function uploadSampleDataToBlob{
     param( 
         [System.String] $filePath,
@@ -319,32 +160,6 @@ Function uploadSampleDataToBlob{
     }
 }
 
-<# ----------------------------------------------------------------------
-
-
-    Generic request methods
-
-
----------------------------------------------------------------------- #>
-
-<#
-    Function: makeRequest
-
-    Purpose: 
-        Makes an HTTP request with either POST or GET
-
-        POST requires all parameters
-        GET requires all but body
-
-    Parameters:
-        url = URL to call
-        headers = Request headers
-        body = Request body
-        method = POST or GET
-
-    Returns:
-        HTTP response or $null if there was a problem
-#>
 Function makeRequest{
     param( 
         [System.String] $url,
@@ -394,26 +209,6 @@ Function makeRequest{
     $request_response
 }
 
-<#
-    Function : validateResponse
-
-    Purpose: 
-        Validate the sresponse from an HTTP request. If the request is null, status
-        code is higher than the max expected (typically 204 Created) then exit
-        is called internally.
-
-        Caller does not check return values, if execution continues after calling this
-        method, the response was acceptable. 
-
-    Parameters:
-        request_response - HTTP Response Object
-        subject - Name to be used in logging
-        max_accepted_code - Maximum status code value accepted
-
-    Returns:
-        None
-#>
-
 Function validateResponse{
     param( 
         $request_response,
@@ -434,22 +229,6 @@ Function validateResponse{
     }    
 }
 
-<#
-    Function : getIndexerStatus
-
-    Purpose: 
-        Wait up to 10 minutes for the indexer to report anything other than unknown or 
-        inProgress. 
-
-        Output to see content. 
-
-    Parameters:
-        url - URL to indexer status
-        headers - Required HTTP headers
-
-    Returns:
-        None
-#>
 Function getIndexerStatus{
     param( 
         [System.String] $url,
@@ -503,23 +282,6 @@ Function getIndexerStatus{
     } while($continue)
 }
 
-<#
-    Function : Get-Deployment
-
-    Purpose: 
-        Given an Azure Resource Group and Resource Group Deployment name, this function will 
-        retrieve all of the deployment outputs as a dictionary.
-
-        All values from DeploymentOutputs.allOutputs must be present. If collecting the deployment
-        OR one of the values is missing, $null is returned for caller to terminate. 
-
-    Parameters:
-        resourceGroup - Resource Group name in which to get the deployment outputs
-        deployment - Deployment name in the resource group
-
-    Returns:
-        Returns a dictionary of all of the values. 
-#>
 Function getSearchDocCounts{
     param( 
         [System.String] $url,
@@ -550,13 +312,6 @@ Function getSearchDocCounts{
 }
 
 
-<# ----------------------------------------------------------------------
-
-
-    Prepare variables using the inputs from the Deployment Outputs
-
-
----------------------------------------------------------------------- #>
 $deployment_output_table = Get-Deployment $resource_group $deployment_name
 
 if( $deployment_output_table -eq $null){
@@ -593,9 +348,6 @@ $indexer_name = $deployment_output_table[[DeploymentOutputs]::prefixName] + "ind
 $cog_service_key = $deployment_output_table[[DeploymentOutputs]::cognitiveServicesKey]
 $search_index_name = $deployment_output_table[[DeploymentOutputs]::searchIndexName]
 
-<#
-    Build all required URL's that will be needed in future calls
-#>
 Write-Host("----URLS----")
 $data_source_url = constructUrl $search_service  "datasources" $null $null $api_version
 Write-Host($data_source_url)
@@ -611,9 +363,6 @@ $query_parameters = "search=*&`$" + "count=true&`$" + "select=metadata_storage_n
 $search_doc_counts_url = $search_service + "/indexes/" + $search_index_name + "/docs?" + $query_parameters + "&api-version=" + $api_version
 Write-Host($search_doc_counts_url)
 
-<#
-    Build all required payloads that will be needed in future calls
-#>
 Write-Host("----PAYLOADS----")
 
 # Data Source
@@ -651,19 +400,6 @@ $indexer_source_json.name = $indexer_name
 $indexer_source_json.dataSourceName = $datasource_name
 $indexer_source_json.skillsetName = $skillset_name
 $indexer_source_json.targetIndexName = $search_index_name
-
-
-<# ----------------------------------------------------------------------
-    
-
-    PROGRAM EXECUTION - mimic Python main() routine
-
-    With everything prepared, fire it off
-
-    PROGRAM EXECUTION - mimic Python main() routine
-
-
----------------------------------------------------------------------- #>
 
 $stg_context = getStorageContext $storage_account_name $storage_account_key
 if( $stg_context -eq $null){
