@@ -700,7 +700,7 @@ validateResponse $resp "Indexer" 204
 getIndexerStatus $indexer_status_url $headers
 
 # uploadSampleDataToBlob()
-uploadSampleDataToBlob './rawdata' $stg_context $storage_container_name
+# uploadSampleDataToBlob './rawdata' $stg_context $storage_container_name
 
 #getSearchDocsCount()
 getSearchDocCounts $search_doc_counts_url $headers
