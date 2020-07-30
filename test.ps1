@@ -1,3 +1,1 @@
-$output = 'Hello!!!'
-$DeploymentScriptOutputs = @{}
-$DeploymentScriptOutputs['text'] = $output
+Write-Host("Hello")
