@@ -5,9 +5,6 @@ param(
 
 
 class DeploymentOutputs {
-    <#
-        Static class holding the names of all the deployment outputs we'll need to proceed
-    #>
     static $searchApiKey = 'searchApiKey'
     static $cognitiveServicesKey = "cognitiveServicesKey"
     static $storageAccountName = "storageAccountName"
@@ -184,13 +181,13 @@ Function makeRequest{
             }
             Write-Host($request_body)
     
-            #try { 
+            try { 
                 $request_response = Invoke-WebRequest $url -Headers $headers -Body $request_body -Method $method 
-            #} catch {
-            #    Write-Host($_.Exception.Message)
-            #    $request_response = $_.Exception.Response
-            #    Write-Host($_.Exception)
-            #}
+            } catch {
+                Write-Host($_.Exception.Message)
+                $request_response = $_.Exception.Response
+                Write-Host($_.Exception)
+            }
         }
         elseif ($method -eq "GET"){
             try { 
