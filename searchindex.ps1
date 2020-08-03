@@ -124,6 +124,7 @@ Function loadFile {
         [System.String] $filePath
     ) 
 
+    Get-Location
     Get-ChildItem -Path .
 
     $return_object = $null
