@@ -124,9 +124,10 @@ Function loadFile {
         [System.String] $filePath
     ) 
 
-    Get-Location
-    Get-ChildItem -Path .
+    #Get-Location
+    #Get-ChildItem -Path .
 
+    $filePath = "mnt/azscripts/azscriptinput/" + $filePath
     $return_object = $null
     if( [IO.File]::Exists($filePath) -eq $true)
     {
