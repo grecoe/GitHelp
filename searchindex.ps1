@@ -124,6 +124,8 @@ Function loadFile {
         [System.String] $filePath
     ) 
 
+    Get-ChildItem -Path .
+    
     $return_object = $null
     if( [IO.File]::Exists($filePath) -eq $true)
     {
@@ -138,7 +140,7 @@ Function loadFile {
     }
     else {
         Write-Host("Request file does not exist  " + $filePath)
-        Get-ChildItem -Path .
+        
     }
 
     return $return_object
