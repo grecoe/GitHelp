@@ -366,7 +366,8 @@ Write-Host($search_doc_counts_url)
 Write-Host("----PAYLOADS----")
 
 # Data Source
-$data_source_json = loadFile "./schemafiles/datasource.json"
+#$data_source_json = loadFile "./schemafiles/datasource.json"
+$data_source_json = loadFile "./datasource.json"
 Write-Host($Data_source_json | ConvertTo-Json)
 if($data_source_json -eq $null){
     exit
@@ -376,7 +377,8 @@ $data_source_json.credentials.connectionString = $storage_connection
 $data_source_json.container.name = $storage_container_name
 
 # Skillset
-$skillset_source_json = loadFile "./schemafiles/skillset.json"
+#$skillset_source_json = loadFile "./schemafiles/skillset.json"
+$skillset_source_json = loadFile "./skillset.json"
 if($skillset_source_json -eq $null){
     exit
 }
@@ -386,14 +388,16 @@ $skillset_source_json.knowledgeStore.storageConnectionString = $storage_connecti
 $skillset_source_json.knowledgeStore.projections[1].objects[0].storageContainer = $output_storagecontainer_ksfull
 
 #Index
-$index_source_json = loadFile "./schemafiles/index.json"
+#$index_source_json = loadFile "./schemafiles/index.json"
+$index_source_json = loadFile "./index.json"
 if($index_source_json -eq $null){
     exit
 }
 $index_source_json.name = $search_index_name
 
 # Indexer
-$indexer_source_json = loadFile "./schemafiles/indexer.json"
+#$indexer_source_json = loadFile "./schemafiles/indexer.json"
+$indexer_source_json = loadFile "./indexer.json"
 if($indexer_source_json -eq $null){
     exit
 }
