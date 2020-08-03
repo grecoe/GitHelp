@@ -138,6 +138,7 @@ Function loadFile {
     }
     else {
         Write-Host("Request file does not exist  " + $filePath)
+        dir
     }
 
     return $return_object
