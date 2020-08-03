@@ -125,7 +125,7 @@ Function loadFile {
     ) 
 
     Get-ChildItem -Path .
-    
+
     $return_object = $null
     if( [IO.File]::Exists($filePath) -eq $true)
     {
@@ -367,6 +367,7 @@ Write-Host("----PAYLOADS----")
 
 # Data Source
 $data_source_json = loadFile "./schemafiles/datasource.json"
+Write-Host($Data_source_json | ConvertTo-Json)
 if($data_source_json -eq $null){
     exit
 }
