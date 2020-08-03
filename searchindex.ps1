@@ -138,7 +138,7 @@ Function loadFile {
     }
     else {
         Write-Host("Request file does not exist  " + $filePath)
-        dir
+        Get-ChildItem -Path .
     }
 
     return $return_object
