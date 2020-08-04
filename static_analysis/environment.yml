@@ -1,0 +1,15 @@
+name: StaticAnalysis
+channels:
+  - conda-forge
+dependencies:
+  - python=3.6.2
+  - pip
+  - pip:    
+    - flake8
+    - mypy
+    - black
+    - numpy
+    - pylint
+    - pylint-junit
+    - pytest
+    - bandit
