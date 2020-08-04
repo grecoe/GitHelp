@@ -2,6 +2,12 @@
 
 This page describes how to utilize the Microsoft.Resources/deploymentScripts resource in an ARM template to deploy over a set of resources in an existing resource group. 
 
+### Useful Links
+https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/deployment-script-template?tabs=CLI
+https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/deployment-script-template?tabs=CLI#run-script-more-than-once
+https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/how-to-manage-ua-identity-cli
+
+
 # Files
 
 |File Name|Purpose|
