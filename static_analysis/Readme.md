@@ -15,6 +15,20 @@ python static_test.py -src C:\gitrepogrecoe\test\static_analysis\code
 ```
 <b>NOTE</b> Do not put parenthesis around the path
 
+# Prerequisite
+Create the conda environment that installs the needed toos:
+
+```
+conda env create -f environment.yml
+```
+
+Activate the environment
+
+```
+conda activate StaticAnalysis
+```
+
+Now you are ready to run the static_test.py file
 
 # Tests Run
 This section covers the tools that will be run against your code. All results are put in files named after the tool that created them in the /test_outputs directory. This directory is created for you upon execution. 
