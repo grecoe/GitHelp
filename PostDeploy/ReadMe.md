@@ -24,8 +24,7 @@ Along with the file searchindex.ps1 having to belong in a repo, the schema files
 az deployment group create -g [YOUR_RG_NAME] 
     --name [YOUR_DEPLOY_NAME] 
     --template-file ./psscript[1|2].json 
-    -deployment_name [YOUR_KM_DEPLOY_NAME] 
-    -identity [FULL ID (script1) | ID NAME TO CREATE (script2)] 
+    --parameters deployment_name=[YOUR_KM_DEPLOY_NAME]  identity=[FULL ID (script1) | ID NAME TO CREATE (script2)] 
     --verbose 
     --debug
 ```
