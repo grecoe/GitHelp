@@ -1,0 +1,89 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "deployment_name":{
+        "type": "string",
+        "defaultValue": "rjdeployment3"
+      },
+      "identity":{
+        "type": "string",
+        "defaultValue": "TEST_IDENTITY"
+      },
+      "utcValue": {
+        "type": "string",
+        "defaultValue": "[utcNow()]"
+      }
+    },
+    "variables": {
+        "roleDefIDPrefix": "[concat(subscription().id, '/providers/Microsoft.Authorization/roleDefinitions/')]",
+        "contributor": "[concat(variables('roleDefIDPrefix'), 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+        "identityResourceID": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identity'))]",
+        "identityRoleAssignDeployment": "[guid(resourceGroup().id, parameters('identity'))]"
+    },
+    "resources": [
+      {
+            "metadata": {
+              "comments": "User-assigned managed identity used by DeploymentScript."
+            },
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "name": "[parameters('identity')]",
+            "apiVersion": "2018-11-30",
+            "location": "[resourceGroup().location]"
+          },
+          {
+            "metadata": {
+              "comments": "Grant user-assigned managed identity permission on the scope of resource group."
+            },
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[variables('identityRoleAssignDeployment')]",
+            "dependsOn": [
+              "[parameters('identity')]"
+            ],
+            "properties": {
+              "roleDefinitionId": "[variables('contributor')]",
+              "principalId": "[reference(parameters('identity')).principalId]",
+              "principalType": "ServicePrincipal"
+            }
+      },        
+      {
+        "type": "Microsoft.Resources/deploymentScripts",
+        "apiVersion": "2019-10-01-preview",
+        "name": "powershellScript",
+        "location": "[resourceGroup().location]",
+        "kind": "AzurePowerShell",
+        "dependsOn": [
+            "[variables('identityRoleAssignDeployment')]"
+          ],
+        "identity": {
+            "type": "UserAssigned",
+            "userAssignedIdentities": {
+              "[variables('identityResourceID')]" : {
+              }
+            }
+          },        
+        "properties": {
+          "forceUpdateTag": "[concat(parameters('utcValue'), '93')]",
+          "azPowerShellVersion": "3.0",
+          "primaryScriptUri": "https://raw.githubusercontent.com/grecoe/test/master/searchindex.ps1",
+          "arguments" : "[concat('-resource_group ', resourceGroup().name, ' -deployment_name ',  parameters('deployment_name'))]",
+          "supportingScriptUris": [
+            "https://raw.githubusercontent.com/grecoe/test/master/schemafiles/datasource.json",
+            "https://raw.githubusercontent.com/grecoe/test/master/schemafiles/index.json",
+            "https://raw.githubusercontent.com/grecoe/test/master/schemafiles/indexer.json",
+            "https://raw.githubusercontent.com/grecoe/test/master/schemafiles/skillset.json"
+          ],
+          "timeout": "PT1H",
+          "cleanupPreference": "OnSuccess",
+          "retentionInterval": "P1D"
+        }
+      }
+    ],
+    "outputs": {
+      "base_deployment": {
+        "value": "parameters('deployment_name')",
+        "type": "string"
+      }
+    }
+  }

@@ -1,0 +1,55 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "deployment_name":{
+        "type": "string",
+        "defaultValue": "rjdeployment3"
+      },
+      "identity":{
+        "type": "string",
+        "defaultValue": "/subscriptions/[SUB_ID]/resourcegroups/[RGNAME]/providers/Microsoft.ManagedIdentity/userAssignedIdentities/[YOUR_ID_NAME]"
+      },
+      "utcValue": {
+        "type": "string",
+        "defaultValue": "[utcNow()]"
+      }
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Resources/deploymentScripts",
+        "apiVersion": "2019-10-01-preview",
+        "name": "powershellScript",
+        "location": "[resourceGroup().location]",
+        "kind": "AzurePowerShell",
+        "identity": {
+            "type": "UserAssigned",
+            "userAssignedIdentities": {
+              "[parameters('identity')]" : {
+              }
+            }
+          },        
+        "properties": {
+          "forceUpdateTag": "[concat(parameters('utcValue'), '93')]",
+          "azPowerShellVersion": "3.0",
+          "primaryScriptUri": "https://raw.githubusercontent.com/grecoe/test/master/searchindex.ps1",
+          "arguments" : "[concat('-resource_group ', resourceGroup().name, ' -deployment_name ',  parameters('deployment_name'))]",
+          "supportingScriptUris": [
+            "https://raw.githubusercontent.com/grecoe/test/master/schemafiles/datasource.json",
+            "https://raw.githubusercontent.com/grecoe/test/master/schemafiles/index.json",
+            "https://raw.githubusercontent.com/grecoe/test/master/schemafiles/indexer.json",
+            "https://raw.githubusercontent.com/grecoe/test/master/schemafiles/skillset.json"
+          ],
+          "timeout": "PT1H",
+          "cleanupPreference": "OnSuccess",
+          "retentionInterval": "P1D"
+        }
+      }
+    ],
+    "outputs": {
+      "base_deployment": {
+        "value": "parameters('deployment_name')",
+        "type": "string"
+      }
+    }
+  }
