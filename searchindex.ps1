@@ -1,10 +1,62 @@
+<#	
+	Copyright  Microsoft Corporation ("Microsoft").
+	
+	Microsoft grants you the right to use this software in accordance with your subscription agreement, if any, to use software 
+	provided for use with Microsoft Azure ("Subscription Agreement").  All software is licensed, not sold.  
+	
+	If you do not have a Subscription Agreement, or at your option if you so choose, Microsoft grants you a nonexclusive, perpetual, 
+	royalty-free right to use and modify this software solely for your internal business purposes in connection with Microsoft Azure 
+	and other Microsoft products, including but not limited to, Microsoft R Open, Microsoft R Server, and Microsoft SQL Server.  
+	
+	Unless otherwise stated in your Subscription Agreement, the following applies.  THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT 
+	WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL MICROSOFT OR ITS LICENSORS BE LIABLE 
+	FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED 
+	TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE SAMPLE CODE, EVEN IF ADVISED OF THE
+	POSSIBILITY OF SUCH DAMAGE.
+#>
+
+<#
+    Issues:
+        - Creating a datasource where it already exists returns a 400 not a 409 
+
+
+    Code Execution Locations
+        - Program Parameters :              Line 42
+        - Load Settings from Deployment :   Line 561
+        - Main program execution :          Line 669
+#>
+
+<# ----------------------------------------------------------------------
+    
+
+    Program parameters, it's expecte you have a logged on Azure user 
+    with access to the subscription that holds the resource group that
+    will either be identified with the -resource_group parameter or 
+    hard coded here. 
+
+
+---------------------------------------------------------------------- #>
 param(
     [string]$resource_group = 'rijai-armtest',
     [string]$deployment_name = 'kmjulydeployment'
 )
 
 
+<# ----------------------------------------------------------------------
+
+
+    Get Azure Resource Group Deployment outputs
+
+
+---------------------------------------------------------------------- #>
+
 class DeploymentOutputs {
+    <#
+        Static class holding the names of all the deployment outputs we'll need to proceed
+    #>
     static $searchApiKey = 'searchApiKey'
     static $cognitiveServicesKey = "cognitiveServicesKey"
     static $storageAccountName = "storageAccountName"
@@ -17,6 +69,23 @@ class DeploymentOutputs {
     static $allOutputs = [DeploymentOutputs]::searchApiKey, [DeploymentOutputs]::cognitiveServicesKey, [DeploymentOutputs]::storageAccountKey, [DeploymentOutputs]::storageAccountName, [DeploymentOutputs]::storageContainerName, [DeploymentOutputs]::prefixName, [DeploymentOutputs]::searchServiceName, [DeploymentOutputs]::searchIndexName
 }
 
+<#
+    Function : Get-Deployment
+
+    Purpose: 
+        Given an Azure Resource Group and Resource Group Deployment name, this function will 
+        retrieve all of the deployment outputs as a dictionary.
+
+        All values from DeploymentOutputs.allOutputs must be present. If collecting the deployment
+        OR one of the values is missing, $null is returned for caller to terminate. 
+
+    Parameters:
+        resourceGroup - Resource Group name in which to get the deployment outputs
+        deployment - Deployment name in the resource group
+
+    Returns:
+        Returns a dictionary of all of the values. 
+#>
 Function Get-Deployment {
     param( 
         [System.String] $resourceGroup,
@@ -59,6 +128,29 @@ Function Get-Deployment {
     $return_data
 }
 
+
+<# ----------------------------------------------------------------------
+
+
+    Azure Storage Routines
+
+
+---------------------------------------------------------------------- #>
+
+<#
+    Function : getStorageContext
+
+    Purpose: 
+        Retrieve an IStorageContext object to be used in other storage
+        calls.
+
+    Parameters:
+        storage_account - Azure Storage Account Name
+        storage_key - Associated key to Azure Storage Account Name
+
+    Returns:
+        IStorageContext for use in other *-Az storage calls.. 
+#>
 Function getStorageContext{
     param( 
         [System.String] $storage_account,
@@ -71,6 +163,20 @@ Function getStorageContext{
     return $res.Context
 }
 
+<#
+    Function : createStorageContainer
+
+    Purpose: 
+        Create a private storage container in a given storage account identified
+        by the context object. 
+
+    Parameters:
+        storage_context - IStorageContext
+        container_name - Name of container to create
+
+    Returns:
+        Storage container if succesful, $null otherwise.  
+#>
 Function createStorageContainer{
     param( 
         $storage_context,
@@ -97,6 +203,25 @@ Function createStorageContainer{
     return $container
 }
 
+
+<# ----------------------------------------------------------------------
+    Generic URI builder
+---------------------------------------------------------------------- #>
+
+<#
+    Function : constructUrl
+
+    Purpose: 
+        Generic URL builder for creating many of the services in the search 
+        service that requires different inputs. 
+
+        Read the code as I took this directly from the Python implementation.
+
+    Parameters:
+
+    Returns:
+        String URL to use for request
+#>
 Function constructUrl {
     param( 
         [System.String] $service,
@@ -119,15 +244,43 @@ Function constructUrl {
     }
 }
 
+<# ----------------------------------------------------------------------
+
+
+    File utilities
+
+
+---------------------------------------------------------------------- #>
+
+<#
+    Function : loadFile
+
+    Purpose: 
+        Load a JSON file and return a PSCustomObject with the content.
+
+    Parameters:
+        filePath - File to load
+
+    Returns:
+        Returns a PSCustomObject if file exists and was parsed, $null
+        otherwise.
+#>
+
 Function loadFile {
     param( 
-        [System.String] $filePath
+        [System.String] $filePath,
+        [System.Boolean] $remote,
+        [System.String] $remotePath,
+        [System.String] $localPath
     ) 
 
-    #Get-Location
-    #Get-ChildItem -Path .
+    if($remote){
+        $filePath = $remotePath + $filePath
+    }
+    else {
+        $filePath = $localPath + $filePath
+    }
 
-    $filePath = "mnt/azscripts/azscriptinput/" + $filePath
     $return_object = $null
     if( [IO.File]::Exists($filePath) -eq $true)
     {
@@ -142,12 +295,26 @@ Function loadFile {
     }
     else {
         Write-Host("Request file does not exist  " + $filePath)
-        
     }
 
     return $return_object
 }
 
+<#
+    Function : uploadSampleDataToBlob
+
+    Purpose: 
+        Uploads all files in a specified directory to a specified storage account
+        and storage container. 
+
+    Parameters:
+        filePath - local path to files to upload
+        storageContext - IStorageContext item to desired account
+        storageContainer - Name of an existing storage container
+
+    Returns:
+        None
+#>
 Function uploadSampleDataToBlob{
     param( 
         [System.String] $filePath,
@@ -162,6 +329,32 @@ Function uploadSampleDataToBlob{
     }
 }
 
+<# ----------------------------------------------------------------------
+
+
+    Generic request methods
+
+
+---------------------------------------------------------------------- #>
+
+<#
+    Function: makeRequest
+
+    Purpose: 
+        Makes an HTTP request with either POST or GET
+
+        POST requires all parameters
+        GET requires all but body
+
+    Parameters:
+        url = URL to call
+        headers = Request headers
+        body = Request body
+        method = POST or GET
+
+    Returns:
+        HTTP response or $null if there was a problem
+#>
 Function makeRequest{
     param( 
         [System.String] $url,
@@ -186,13 +379,13 @@ Function makeRequest{
             }
             Write-Host($request_body)
     
-            try { 
+            #try { 
                 $request_response = Invoke-WebRequest $url -Headers $headers -Body $request_body -Method $method 
-            } catch {
-                Write-Host($_.Exception.Message)
-                $request_response = $_.Exception.Response
-                Write-Host($_.Exception)
-            }
+            #} catch {
+            #    Write-Host($_.Exception.Message)
+            #    $request_response = $_.Exception.Response
+            #    Write-Host($_.Exception)
+            #}
         }
         elseif ($method -eq "GET"){
             try { 
@@ -210,6 +403,26 @@ Function makeRequest{
 
     $request_response
 }
+
+<#
+    Function : validateResponse
+
+    Purpose: 
+        Validate the sresponse from an HTTP request. If the request is null, status
+        code is higher than the max expected (typically 204 Created) then exit
+        is called internally.
+
+        Caller does not check return values, if execution continues after calling this
+        method, the response was acceptable. 
+
+    Parameters:
+        request_response - HTTP Response Object
+        subject - Name to be used in logging
+        max_accepted_code - Maximum status code value accepted
+
+    Returns:
+        None
+#>
 
 Function validateResponse{
     param( 
@@ -231,6 +444,22 @@ Function validateResponse{
     }    
 }
 
+<#
+    Function : getIndexerStatus
+
+    Purpose: 
+        Wait up to 10 minutes for the indexer to report anything other than unknown or 
+        inProgress. 
+
+        Output to see content. 
+
+    Parameters:
+        url - URL to indexer status
+        headers - Required HTTP headers
+
+    Returns:
+        None
+#>
 Function getIndexerStatus{
     param( 
         [System.String] $url,
@@ -284,6 +513,23 @@ Function getIndexerStatus{
     } while($continue)
 }
 
+<#
+    Function : Get-Deployment
+
+    Purpose: 
+        Given an Azure Resource Group and Resource Group Deployment name, this function will 
+        retrieve all of the deployment outputs as a dictionary.
+
+        All values from DeploymentOutputs.allOutputs must be present. If collecting the deployment
+        OR one of the values is missing, $null is returned for caller to terminate. 
+
+    Parameters:
+        resourceGroup - Resource Group name in which to get the deployment outputs
+        deployment - Deployment name in the resource group
+
+    Returns:
+        Returns a dictionary of all of the values. 
+#>
 Function getSearchDocCounts{
     param( 
         [System.String] $url,
@@ -314,6 +560,13 @@ Function getSearchDocCounts{
 }
 
 
+<# ----------------------------------------------------------------------
+
+
+    Prepare variables using the inputs from the Deployment Outputs
+
+
+---------------------------------------------------------------------- #>
 $deployment_output_table = Get-Deployment $resource_group $deployment_name
 
 if( $deployment_output_table -eq $null){
@@ -324,6 +577,15 @@ else{
     Write-Host("Deployment settings loaded...")
 }
 
+# Schema files
+$use_remote_path = $true
+$remote_path = "mnt/azscripts/azscriptinput/"
+$local_path = "./schemafiles/" + $filePath
+
+$data_source_file = "datasource.json"
+$index_file = "index.json"
+$indexer_file = "indexer.json"
+$skillset_file = "skillset.json"
 
 # Azure Search
 $search_service = "https://" + $deployment_output_table[[DeploymentOutputs]::searchServiceName] + ".search.windows.net"
@@ -350,6 +612,9 @@ $indexer_name = $deployment_output_table[[DeploymentOutputs]::prefixName] + "ind
 $cog_service_key = $deployment_output_table[[DeploymentOutputs]::cognitiveServicesKey]
 $search_index_name = $deployment_output_table[[DeploymentOutputs]::searchIndexName]
 
+<#
+    Build all required URL's that will be needed in future calls
+#>
 Write-Host("----URLS----")
 $data_source_url = constructUrl $search_service  "datasources" $null $null $api_version
 Write-Host($data_source_url)
@@ -365,11 +630,13 @@ $query_parameters = "search=*&`$" + "count=true&`$" + "select=metadata_storage_n
 $search_doc_counts_url = $search_service + "/indexes/" + $search_index_name + "/docs?" + $query_parameters + "&api-version=" + $api_version
 Write-Host($search_doc_counts_url)
 
+<#
+    Build all required payloads that will be needed in future calls
+#>
 Write-Host("----PAYLOADS----")
 
 # Data Source
-$data_source_json = loadFile "datasource.json"
-Write-Host($Data_source_json | ConvertTo-Json)
+$data_source_json = loadFile $data_source_file $use_remote_path $remote_path $local_path
 if($data_source_json -eq $null){
     exit
 }
@@ -378,7 +645,7 @@ $data_source_json.credentials.connectionString = $storage_connection
 $data_source_json.container.name = $storage_container_name
 
 # Skillset
-$skillset_source_json = loadFile "skillset.json"
+$skillset_source_json = loadFile $skillset_file $use_remote_path $remote_path $local_path
 if($skillset_source_json -eq $null){
     exit
 }
@@ -388,14 +655,14 @@ $skillset_source_json.knowledgeStore.storageConnectionString = $storage_connecti
 $skillset_source_json.knowledgeStore.projections[1].objects[0].storageContainer = $output_storagecontainer_ksfull
 
 #Index
-$index_source_json = loadFile "index.json"
+$index_source_json = loadFile $index_file $use_remote_path $remote_path $local_path
 if($index_source_json -eq $null){
     exit
 }
 $index_source_json.name = $search_index_name
 
 # Indexer
-$indexer_source_json = loadFile "indexer.json"
+$indexer_source_json = loadFile $indexer_file $use_remote_path $remote_path $local_path
 if($indexer_source_json -eq $null){
     exit
 }
@@ -403,6 +670,19 @@ $indexer_source_json.name = $indexer_name
 $indexer_source_json.dataSourceName = $datasource_name
 $indexer_source_json.skillsetName = $skillset_name
 $indexer_source_json.targetIndexName = $search_index_name
+
+
+<# ----------------------------------------------------------------------
+    
+
+    PROGRAM EXECUTION - mimic Python main() routine
+
+    With everything prepared, fire it off
+
+    PROGRAM EXECUTION - mimic Python main() routine
+
+
+---------------------------------------------------------------------- #>
 
 $stg_context = getStorageContext $storage_account_name $storage_account_key
 if( $stg_context -eq $null){
@@ -420,26 +700,30 @@ if( $stg_container -eq $null){
 #createDataSource()
 $resp = makeRequest $data_source_url $headers $data_source_json "POST"
 Write-Host("RESPONSE: " + $resp)
-validateResponse $resp "Data Source" 204
+#validateResponse $resp "Data Source" 204
 
 #createSkillSet()
 Write-Host($skill_set_url)
 $resp = makeRequest $skill_set_url $headers $skillset_source_json "PUT"
-validateResponse $resp "Skill Set" 204
+#validateResponse $resp "Skill Set" 204
 
 #createIndex()
 $resp = makeRequest $index_url $headers $index_source_json  "POST"
-validateResponse $resp "Index" 204
+#validateResponse $resp "Index" 204
 
 #createIndexer()
 $resp = makeRequest $indexers_url $headers $indexer_source_json "POST"
-validateResponse $resp "Indexer" 204
+#validateResponse $resp "Indexer" 204
 
 # Python while loop replaced with single call
 getIndexerStatus $indexer_status_url $headers
 
-# uploadSampleDataToBlob()
-# uploadSampleDataToBlob './rawdata' $stg_context $storage_container_name
+<# 
+    uploadSampleDataToBlob()
+
+    NOTE: Currently now files to push up there, when done, we need to change this. 
+#>
+#uploadSampleDataToBlob './rawdata' $stg_context $storage_container_name
 
 #getSearchDocsCount()
 getSearchDocCounts $search_doc_counts_url $headers
