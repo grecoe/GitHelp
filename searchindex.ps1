@@ -700,20 +700,20 @@ if( $stg_container -eq $null){
 #createDataSource()
 $resp = makeRequest $data_source_url $headers $data_source_json "POST"
 Write-Host("RESPONSE: " + $resp)
-#validateResponse $resp "Data Source" 204
+validateResponse $resp "Data Source" 204
 
 #createSkillSet()
 Write-Host($skill_set_url)
 $resp = makeRequest $skill_set_url $headers $skillset_source_json "PUT"
-#validateResponse $resp "Skill Set" 204
+validateResponse $resp "Skill Set" 204
 
 #createIndex()
 $resp = makeRequest $index_url $headers $index_source_json  "POST"
-#validateResponse $resp "Index" 204
+validateResponse $resp "Index" 204
 
 #createIndexer()
 $resp = makeRequest $indexers_url $headers $indexer_source_json "POST"
-#validateResponse $resp "Indexer" 204
+validateResponse $resp "Indexer" 204
 
 # Python while loop replaced with single call
 getIndexerStatus $indexer_status_url $headers
