@@ -1,3 +1,4 @@
 Notes.md
 static_analysis/.mypy_cache/*
 static_analysis/test_outputs/*
+7_testing/intface/__pycache__/
