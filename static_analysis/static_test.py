@@ -22,11 +22,13 @@ import sys
 import argparse
 import shutil
 import json
+import subprocess
 
 
 """
     Paths/files needed later
 """
+expected_conda_environment = "StaticAnalysis"
 root_folder = os.getcwd()
 static_config_settings = os.path.join(root_folder, 'static_analysis.json')
 output_folder = os.path.join(root_folder, 'test_outputs')
@@ -73,6 +75,26 @@ def load_configuration():
 
     return return_object
  
+def check_conda_environment():
+    global expected_conda_environment
+
+    output = subprocess.check_output(["conda", 'env', 'list'])
+    output = output.decode(sys.stdout.encoding)
+    outputs = output.split(os.linesep)
+    split_outputs = []
+    for out in outputs:
+        if out.startswith("#"):
+            continue
+        split_outputs.append( [x for x in out.split(' ') if len(x) > 0] )
+        if len(split_outputs[-1]) == 0:
+            split_outputs.pop(-1)
+
+    for split in split_outputs:
+        if len(split) == 3:
+            if split[0] != expected_conda_environment:
+                print("WARNING: Expected conda env {} not active, active env is {}".format(expected_conda_environment, split[0]))
+            else:
+                print("Expected conda environemnt {} is active.".format(expected_conda_environment))
 
 
 """
@@ -125,6 +147,7 @@ all_calls = [black_call, pylint_call, bandit_call, mypy_call, flake8_call]
 """
     Create/clear the output directory then fun all tests. 
 """
+check_conda_environment()
 create_outputs_directory()
 
 for test in all_calls:
