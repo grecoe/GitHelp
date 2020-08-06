@@ -580,7 +580,7 @@ else{
 # Schema files
 $use_remote_path = $true
 $remote_path = "mnt/azscripts/azscriptinput/"
-$local_path = "./schemafiles/" + $filePath
+$local_path = "./schemafiles/"
 
 $data_source_file = "datasource.json"
 $index_file = "index.json"

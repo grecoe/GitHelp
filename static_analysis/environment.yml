@@ -8,7 +8,6 @@ dependencies:
     - flake8
     - mypy
     - black
-    - numpy
     - pylint
     - pylint-junit
     - pytest

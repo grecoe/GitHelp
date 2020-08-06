@@ -92,9 +92,9 @@ def check_conda_environment():
     for split in split_outputs:
         if len(split) == 3:
             if split[0] != expected_conda_environment:
-                print("WARNING: Expected conda env {} not active, active env is {}".format(expected_conda_environment, split[0]))
+                print("\nWARNING: Expected conda env {} not active, active env is {}\n".format(expected_conda_environment, split[0]))
             else:
-                print("Expected conda environemnt {} is active.".format(expected_conda_environment))
+                print("\nExpected conda environemnt {} is active.\n".format(expected_conda_environment))
 
 
 """
