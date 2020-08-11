@@ -13,12 +13,19 @@ $ git checkout Feature1
 $ git checkout -b Dev1 Feature1
 ```
 
-## Do work in Dev1 then move those into Feature1
+## A. Do work in Dev1 and move it to github for a PR
+```
+# While on the Dev1 branch
+$ git commit -am "First developer update to feature"
+$ git push -u origin Dev1
+```
+
+## B. Do work in Dev1 then move those into Feature1
 ```
 # While on the Dev1 branch
 $ git commit -am "First developer update to feature"
 
-#Now merge your changes to Feature1 without a fast-forward
+# Now merge your changes to Feature1 without a fast-forward
 $ git checkout Feature1
 $ git merge --no-ff Dev1
 
