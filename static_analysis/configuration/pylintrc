@@ -1,4 +1,0 @@
-[MESSAGES CONTROL]
-# C0301 = line-too-long
-# R0903 = too-few-public-methods
-disable=C0301,R0903
