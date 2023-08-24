@@ -4,9 +4,11 @@
 
 We have 3 repositories, arepo1 and arepo2 that we want to put into a new repo aumbrealla. Clone all 3 repositories to your machine. 
 
+```
 https://github.com/grecoe/aumbrella.git
 https://github.com/grecoe/arepo1.git
 https://github.com/grecoe/arepo2.git
+```
 
 ## Modify your originals if you want them in a sub folder contained within the new parent repo. 
 
