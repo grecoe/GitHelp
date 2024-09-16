@@ -46,6 +46,10 @@ git -v cherry master
 
 ### Trying to remove a single change
 
-Not sure, but using something like `git reset --hard HEAD~2` gets rid of `HEAD~1` as well. 
+You use rebase see [this page](https://graphite.dev/guides/how-to-delete-a-git-commit)
 
-I think you'll probably have to cherry pick out 1 to a new branch and possibly others. 
+Include enough history to get the changes, an editor opens in code and you can make changes there. 
+
+```bash
+git rebase -i HEAD~4
+```

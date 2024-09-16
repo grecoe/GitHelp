@@ -40,3 +40,8 @@ aumbrella> git merge --allow-unrelated-histories arepo2/main
 Once it looks good an you like what you have, add/commit the umbrella to source control. Again review what you have there. 
 
 When satisfied it worked, delete the original source repos arepo1 and arepo2. 
+
+
+## Delete remote repo
+
+> git branch -d --remote  origin/Feature1
