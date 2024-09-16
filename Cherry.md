@@ -33,3 +33,19 @@ git stash
 $ git reset --hard HEAD^
 $ git stash 
 ```
+
+### TO see the commits on the current branch that are only specific to that branch
+
+```bash
+git log master..
+
+OR
+
+git -v cherry master
+```
+
+### Trying to remove a single change
+
+Not sure, but using something like `git reset --hard HEAD~2` gets rid of `HEAD~1` as well. 
+
+I think you'll probably have to cherry pick out 1 to a new branch and possibly others. 
